@@ -12,14 +12,15 @@ for file in $@; do
         echo "error: $file does not exist" >&2
         continue
     fi
-    file_bin=$(gzip -c "$file")
+    file_bin=$(gzip -c -n "$file")
     hashed=$(echo "$file_bin"|sha1sum|cut -d' ' -f1)
     dir=$(echo "$hashed" | cut -c1-2) # 2 char
     name=$(echo "$hashed" | cut -c3-40)
 
-    if ! test -e ".girt/objects/$dir"; then
-        mkdir -p ".girt/objects/$dir"
+    if ! test -e ".girt/objects/blob/$dir"; then
+        mkdir -p ".girt/objects/blob/$dir"
     fi
-    echo "$file_bin" > .girt/objects/$dir/$name
-    echo "$hashed $file" >> .girt/index
+    
+    echo "$file_bin" > .girt/objects/blob/$dir/$name
+    printf "$hashed\t$file\n" >> .girt/index
 done

@@ -247,3 +247,6 @@ cat 7.txt
 6
 7
 ```
+
+
+## Storage structure

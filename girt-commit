@@ -1,1 +1,61 @@
 #!/bin/dash
+
+# check current location
+if ! test -e ".girt"; then
+    echo "fatal: this operation must be run in a work tree" >&2
+    exit 1
+fi
+
+usage() { echo "usage: $0 [-m <message>]" 1>&2; exit 1; }
+
+all=false
+
+while getopts ":m:a" o; do
+    case "${o}" in
+        m)
+            message=${OPTARG}
+            ;;
+        a)
+            all=true
+            ;;
+        *)
+            usage
+            ;;
+    esac
+done
+shift $((OPTIND-1))
+
+if test -z "$message" ; then 
+    usage 
+fi
+
+if test $all; then
+    # all files option
+    # save all files in index to `.girt/objects` and update index
+    while read LINE; do
+        file=$(echo "$LINE" | cut -f2)
+        file_bin=$(gzip -c -n "$file")
+        hashed=$(echo "$file_bin"|sha1sum|cut -d' ' -f1)
+        dir=$(echo "$hashed" | cut -c1-2) # 2 char
+        name=$(echo "$hashed" | cut -c3-40)
+
+        if ! test -e ".girt/objects/blob/$dir"; then
+            mkdir -p ".girt/objects/blob/$dir"
+        fi
+        
+        echo "$file_bin" > .girt/objects/blob/$dir/$name
+        printf "$hashed\t$file\n" >> .girt/index.tmp
+    done < .girt/index
+    mv .girt/index.tmp .girt/index
+fi
+
+commit_number=$(tail -n1 .girt/commits | cut -f1)
+if test -z $commit_number; then
+    commit_number=-1
+fi
+commit_number=$((commit_number+1))
+cp .girt/index .girt/objects/commit/$commit_number
+
+printf '%d\t%s\n' "$commit_number" "$message" >> .girt/commits
+
+echo "Commited as commit $commit_number"

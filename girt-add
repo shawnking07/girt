@@ -1,1 +1,25 @@
 #!/bin/dash
+if test $# -eq 0 ; then
+    echo "usage: $0 <filenames>"
+fi
+# check current location
+if ! test -e ".girt"; then
+    echo "fatal: this operation must be run in a work tree" >&2
+    exit 1
+fi
+for file in $@; do
+    if ! test -e "$file";then
+        echo "error: $file does not exist" >&2
+        continue
+    fi
+    file_bin=$(gzip -c "$file")
+    hashed=$(echo "$file_bin"|sha1sum|cut -d' ' -f1)
+    dir=$(echo "$hashed" | cut -c1-2) # 2 char
+    name=$(echo "$hashed" | cut -c3-40)
+
+    if ! test -e ".girt/objects/$dir"; then
+        mkdir -p ".girt/objects/$dir"
+    fi
+    echo "$file_bin" > .girt/objects/$dir/$name
+    echo "$hashed $file" >> .girt/index
+done

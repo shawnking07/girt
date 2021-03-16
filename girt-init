@@ -1,5 +1,5 @@
 #!/bin/dash
-if test -d ".girt" ; then
+if test -e ".girt" ; then
     echo "$0: error: .girt already exists" >&2
     exit 1
 fi

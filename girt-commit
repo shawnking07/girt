@@ -6,7 +6,7 @@ if ! test -e ".girt"; then
     exit 1
 fi
 
-usage() { echo "usage: $0 [-m <message>]" 1>&2; exit 1; }
+usage() { echo "usage: $0 [-a] [-m <message>]" 1>&2; exit 1; }
 
 all=false
 
@@ -29,24 +29,23 @@ if test -z "$message" ; then
     usage 
 fi
 
-if test $all; then
+if $all; then
     # all files option
     # save all files in index to `.girt/objects` and update index
     while read LINE; do
         file=$(echo "$LINE" | cut -f2)
-        file_bin=$(gzip -c -n "$file")
-        hashed=$(echo "$file_bin"|sha1sum|cut -d' ' -f1)
+        gzip -c -n "$file" > .girt/tmp/compressed_tmp
+        hashed=$(cat .girt/tmp/compressed_tmp|sha1sum|cut -d' ' -f1)
         dir=$(echo "$hashed" | cut -c1-2) # 2 char
         name=$(echo "$hashed" | cut -c3-40)
 
         if ! test -e ".girt/objects/blob/$dir"; then
             mkdir -p ".girt/objects/blob/$dir"
         fi
-        
-        echo "$file_bin" > .girt/objects/blob/$dir/$name
-        printf "$hashed\t$file\n" >> .girt/index.tmp
+        mv .girt/tmp/compressed_tmp .girt/objects/blob/$dir/$name
+        printf "$hashed\t$file\n" >> .girt/tmp/index.tmp
     done < .girt/index
-    mv .girt/index.tmp .girt/index
+    mv .girt/tmp/index.tmp .girt/index
 fi
 
 commit_number=$(tail -n1 .girt/commits | cut -f1)

@@ -4,4 +4,4 @@ if ! test -e ".girt"; then
     exit 1
 fi
 
-cat .girt/commits
+cat .girt/commits | sort -r -n

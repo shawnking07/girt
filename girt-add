@@ -12,15 +12,22 @@ for file in $@; do
         echo "error: $file does not exist" >&2
         continue
     fi
-    file_bin=$(gzip -c -n "$file")
-    hashed=$(echo "$file_bin"|sha1sum|cut -d' ' -f1)
+    gzip -c -n "$file" > .girt/tmp/compressed_tmp
+    hashed=$(cat .girt/tmp/compressed_tmp|sha1sum|cut -d' ' -f1)
     dir=$(echo "$hashed" | cut -c1-2) # 2 char
     name=$(echo "$hashed" | cut -c3-40)
 
     if ! test -e ".girt/objects/blob/$dir"; then
         mkdir -p ".girt/objects/blob/$dir"
     fi
+    mv .girt/tmp/compressed_tmp .girt/objects/blob/$dir/$name
     
-    echo "$file_bin" > .girt/objects/blob/$dir/$name
+    # remove old one
+    while read -r LINE; do
+        filename=$(echo "$LINE" | cut -f2)
+        if [ $filename = $file ] ; then
+            sed -i "/$LINE/d" '.girt/index'
+        fi
+    done < .girt/index
     printf "$hashed\t$file\n" >> .girt/index
 done

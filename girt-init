@@ -3,6 +3,6 @@ if test -e ".girt" ; then
     echo "$0: error: .girt already exists" >&2
     exit 1
 fi
-mkdir -p .girt/logs .girt/objects/commit .girt/objects/blob .girt/refs/heads
+mkdir -p .girt/tmp .girt/logs .girt/objects/commit .girt/objects/blob .girt/refs/heads
 touch .girt/HEAD .girt/index .girt/commits
 echo "Initialized empty girt repository in .girt"

@@ -1,1 +1,8 @@
 #!/bin/dash
+if test -d ".girt" ; then
+    echo "$0: error: .girt already exists" >&2
+    exit 1
+fi
+mkdir -p .girt/logs .girt/objects .girt/refs/heads
+touch .girt/HEAD .girt/index
+echo "Initialized empty girt repository in .girt"

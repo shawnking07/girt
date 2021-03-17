@@ -1,9 +1,8 @@
 #!/bin/dash
-if ! test -e ".girt"; then
-    echo "fatal: this operation must be run in a work tree" >&2
+if ! test -e "$PWD/.girt"; then
+    echo "$0: error: girt repository directory .girt not found" >&2
     exit 1
 fi
-
 usage() { echo "usage: $0 [commit]:filename" 1>&2; exit 1; }
 
 commit=$(echo "$1"|cut -d':' -f1)
@@ -17,10 +16,10 @@ load_commit(){
         dir=$(echo "$hashed" | cut -c1-2) # 2 char
         name=$(echo "$hashed" | cut -c3-40)
 
-        if (! test -z $dir) && (! test -z name); then
-            gunzip -c -n .girt/objects/blob/$dir/$name
+        if (! test -z $dir) && (! test -z $name); then
+            gunzip -c -n "$PWD/.girt/objects/blob/$dir/$name"
         fi
-    done < ".girt/objects/commit/$1"
+    done < "$PWD/.girt/objects/commit/$1"
 }
 
 if ! test -z "$commit"; then
@@ -28,7 +27,15 @@ if ! test -z "$commit"; then
     exit 0
 fi
 
-for file in .girt/objects/commit/*; do
-    basename=$(basename $file)
-    load_commit $basename $filename
-done
+while read -r LINE; do
+    file=$(echo "$LINE" | cut -f2)
+    if [ "$file" != "$filename" ]; then continue 
+    fi
+    dir=$(echo "$LINE" | cut -c1-2) # 2 char
+    name=$(echo "$LINE" | cut -c3-40)
+
+    if (! test -z $dir) && (! test -z $name); then
+        gunzip -c -n "$PWD/.girt/objects/blob/$dir/$name"
+    fi
+    exit 0
+done < $PWD/.girt/index

@@ -1,33 +1,34 @@
 #!/bin/dash
 if test $# -eq 0 ; then
     echo "usage: $0 <filenames>"
+    exit 1
 fi
 # check current location
-if ! test -e ".girt"; then
-    echo "fatal: this operation must be run in a work tree" >&2
+if ! test -e "$PWD/.girt"; then
+    echo "$0: error: girt repository directory .girt not found" >&2
     exit 1
 fi
 for file in $@; do
-    if ! test -e "$file";then
-        echo "error: $file does not exist" >&2
+    if ! test -e "$PWD/$file";then
+        echo "$0: error: can not open '$1'" >&2
         continue
     fi
-    gzip -c -n "$file" > .girt/tmp/compressed_tmp
-    hashed=$(cat .girt/tmp/compressed_tmp|sha1sum|cut -d' ' -f1)
+    gzip -c -n "$PWD/$file" > $PWD/.girt/tmp/compressed_tmp
+    hashed=$(cat $PWD/.girt/tmp/compressed_tmp|sha1sum|cut -d' ' -f1)
     dir=$(echo "$hashed" | cut -c1-2) # 2 char
     name=$(echo "$hashed" | cut -c3-40)
 
-    if ! test -e ".girt/objects/blob/$dir"; then
-        mkdir -p ".girt/objects/blob/$dir"
+    if ! test -e "$PWD/.girt/objects/blob/$dir"; then
+        mkdir -p "$PWD/.girt/objects/blob/$dir"
     fi
-    mv .girt/tmp/compressed_tmp .girt/objects/blob/$dir/$name
+    mv $PWD/.girt/tmp/compressed_tmp $PWD/.girt/objects/blob/$dir/$name
     
     # remove old one
     while read -r LINE; do
         filename=$(echo "$LINE" | cut -f2)
         if [ $filename = $file ] ; then
-            sed -i "/$LINE/d" '.girt/index'
+            sed -i "/$LINE/d" "$PWD/.girt/index"
         fi
-    done < .girt/index
-    printf "$hashed\t$file\n" >> .girt/index
+    done < "$PWD/.girt/index"
+    printf "$hashed\t$file\n" >> $PWD/.girt/index
 done

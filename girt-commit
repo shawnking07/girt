@@ -1,8 +1,8 @@
 #!/bin/dash
 
 # check current location
-if ! test -e ".girt"; then
-    echo "fatal: this operation must be run in a work tree" >&2
+if ! test -e "$PWD/.girt"; then
+    echo "$0: error: girt repository directory .girt not found" >&2
     exit 1
 fi
 
@@ -31,30 +31,30 @@ fi
 
 if $all; then
     # all files option
-    # save all files in index to `.girt/objects` and update index
+    # save all files in index to `$PWD/.girt/objects` and update index
     while read LINE; do
         file=$(echo "$LINE" | cut -f2)
-        gzip -c -n "$file" > .girt/tmp/compressed_tmp
-        hashed=$(cat .girt/tmp/compressed_tmp|sha1sum|cut -d' ' -f1)
+        gzip -c -n "$file" > $PWD/.girt/tmp/compressed_tmp
+        hashed=$(cat $PWD/.girt/tmp/compressed_tmp|sha1sum|cut -d' ' -f1)
         dir=$(echo "$hashed" | cut -c1-2) # 2 char
         name=$(echo "$hashed" | cut -c3-40)
 
-        if ! test -e ".girt/objects/blob/$dir"; then
-            mkdir -p ".girt/objects/blob/$dir"
+        if ! test -e "$PWD/.girt/objects/blob/$dir"; then
+            mkdir -p "$PWD/.girt/objects/blob/$dir"
         fi
-        mv .girt/tmp/compressed_tmp .girt/objects/blob/$dir/$name
-        printf "$hashed\t$file\n" >> .girt/tmp/index.tmp
-    done < .girt/index
-    mv .girt/tmp/index.tmp .girt/index
+        mv $PWD/.girt/tmp/compressed_tmp $PWD/.girt/objects/blob/$dir/$name
+        printf "$hashed\t$file\n" >> $PWD/.girt/tmp/index.tmp
+    done < $PWD/.girt/index
+    mv $PWD/.girt/tmp/index.tmp $PWD/.girt/index
 fi
 
-commit_number=$(tail -n1 .girt/commits | cut -f1)
+commit_number=$(tail -n1 $PWD/.girt/commits | cut -f1)
 if test -z $commit_number; then
     commit_number=-1
 fi
 commit_number=$((commit_number+1))
-cp .girt/index .girt/objects/commit/$commit_number
+cp $PWD/.girt/index $PWD/.girt/objects/commit/$commit_number
 
-printf '%d\t%s\n' "$commit_number" "$message" >> .girt/commits
+printf '%d\t%s\n' "$commit_number" "$message" >> $PWD/.girt/commits
 
-echo "Commited as commit $commit_number"
+echo "Committed as commit $commit_number"

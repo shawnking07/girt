@@ -1,7 +1,7 @@
 #!/bin/dash
-if ! test -e ".girt"; then
-    echo "fatal: this operation must be run in a work tree" >&2
+if ! test -e "$PWD/.girt"; then
+    echo "$0: error: girt repository directory .girt not found" >&2
     exit 1
 fi
 
-cat .girt/commits | sort -r -n
+cat $PWD/.girt/commits | sort -r -n | sed 's/\t/ /g'

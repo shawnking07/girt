@@ -8,27 +8,27 @@ if ! test -e "$PWD/.girt"; then
     echo "$0: error: girt repository directory .girt not found" >&2
     exit 1
 fi
-for file in $@; do
+for file in "$@"; do
     if ! test -e "$PWD/$file";then
         echo "$0: error: can not open '$1'" >&2
         continue
     fi
-    gzip -c -n "$PWD/$file" > $PWD/.girt/tmp/compressed_tmp
-    hashed=$(cat $PWD/.girt/tmp/compressed_tmp|sha1sum|cut -d' ' -f1)
+    gzip -c -n "$PWD/$file" > "$PWD/.girt/tmp/compressed_tmp"
+    hashed=$(cat "$PWD/.girt/tmp/compressed_tmp"|sha1sum|cut -d' ' -f1)
     dir=$(echo "$hashed" | cut -c1-2) # 2 char
     name=$(echo "$hashed" | cut -c3-40)
 
     if ! test -e "$PWD/.girt/objects/blob/$dir"; then
         mkdir -p "$PWD/.girt/objects/blob/$dir"
     fi
-    mv $PWD/.girt/tmp/compressed_tmp $PWD/.girt/objects/blob/$dir/$name
+    mv "$PWD/.girt/tmp/compressed_tmp" "$PWD/.girt/objects/blob/$dir/$name"
     
     # remove old one
     while read -r LINE; do
         filename=$(echo "$LINE" | cut -f2)
-        if [ $filename = $file ] ; then
+        if [ "$filename" = "$file" ] ; then
             sed -i "/$LINE/d" "$PWD/.girt/index"
         fi
     done < "$PWD/.girt/index"
-    printf "$hashed\t$file\n" >> $PWD/.girt/index
+    printf "%s\t%s\n" "$hashed" "$file" >> "$PWD/.girt/index"
 done

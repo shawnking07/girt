@@ -4,4 +4,4 @@ if ! test -e "$PWD/.girt"; then
     exit 1
 fi
 
-cat $PWD/.girt/commits | sort -r -n | sed 's/\t/ /g'
+cat "$PWD/.girt/commits" | sort -r -n | sed 's/\t/ /g'

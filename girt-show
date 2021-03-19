@@ -9,7 +9,7 @@ commit=$(echo "$1"|cut -d':' -f1)
 filename=$(echo "$1"|cut -d':' -f2)
 
 load_commit(){
-    while read hashed; do
+    while read -r hashed; do
         file=$(echo "$hashed" | cut -f2)
         if [ "$file" != "$2" ]; then continue 
         fi
@@ -27,6 +27,7 @@ if ! test -z "$commit"; then
     exit 0
 fi
 
+# current index
 while read -r LINE; do
     file=$(echo "$LINE" | cut -f2)
     if [ "$file" != "$filename" ]; then continue 

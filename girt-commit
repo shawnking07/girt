@@ -32,29 +32,29 @@ fi
 if $all; then
     # all files option
     # save all files in index to `$PWD/.girt/objects` and update index
-    while read LINE; do
+    while read -r LINE; do
         file=$(echo "$LINE" | cut -f2)
-        gzip -c -n "$file" > $PWD/.girt/tmp/compressed_tmp
-        hashed=$(cat $PWD/.girt/tmp/compressed_tmp|sha1sum|cut -d' ' -f1)
+        gzip -c -n "$file" > "$PWD/.girt/tmp/compressed_tmp"
+        hashed=$(cat "$PWD/.girt/tmp/compressed_tmp"|sha1sum|cut -d' ' -f1)
         dir=$(echo "$hashed" | cut -c1-2) # 2 char
         name=$(echo "$hashed" | cut -c3-40)
 
         if ! test -e "$PWD/.girt/objects/blob/$dir"; then
             mkdir -p "$PWD/.girt/objects/blob/$dir"
         fi
-        mv $PWD/.girt/tmp/compressed_tmp $PWD/.girt/objects/blob/$dir/$name
-        printf "$hashed\t$file\n" >> $PWD/.girt/tmp/index.tmp
-    done < $PWD/.girt/index
-    mv $PWD/.girt/tmp/index.tmp $PWD/.girt/index
+        mv "$PWD/.girt/tmp/compressed_tmp" "$PWD/.girt/objects/blob/$dir/$name"
+        printf "%s\t%s\n" "$hashed" "$file" >> "$PWD/.girt/index"
+    done < "$PWD/.girt/index"
+    mv "$PWD/.girt/tmp/index.tmp" "$PWD/.girt/index"
 fi
 
-commit_number=$(tail -n1 $PWD/.girt/commits | cut -f1)
-if test -z $commit_number; then
+commit_number=$(tail -n1 "$PWD/.girt/commits" | cut -f1)
+if test -z "$commit_number"; then
     commit_number=-1
 fi
 commit_number=$((commit_number+1))
-cp $PWD/.girt/index $PWD/.girt/objects/commit/$commit_number
+cp "$PWD/.girt/index" "$PWD/.girt/objects/commit/$commit_number"
 
-printf '%d\t%s\n' "$commit_number" "$message" >> $PWD/.girt/commits
+printf '%d\t%s\n' "$commit_number" "$message" >> "$PWD/.girt/commits"
 
 echo "Committed as commit $commit_number"

@@ -9,34 +9,44 @@ commit=$(echo "$1"|cut -d':' -f1)
 filename=$(echo "$1"|cut -d':' -f2)
 
 load_commit(){
+    if [ ! -e "$PWD/.girt/objects/commit/$1" ]; then
+        echo "$0: error: unknown commit '$1'" >&2
+        exit 1
+    fi
     while read -r hashed; do
         file=$(echo "$hashed" | cut -f2)
-        if [ "$file" != "$2" ]; then continue 
-        fi
-        dir=$(echo "$hashed" | cut -c1-2) # 2 char
-        name=$(echo "$hashed" | cut -c3-40)
-
-        if (! test -z $dir) && (! test -z $name); then
-            gunzip -c -n "$PWD/.girt/objects/blob/$dir/$name"
+        if [ "$file" = "$2" ]; then
+            dir=$(echo "$hashed" | cut -c1-2) # 2 char
+            name=$(echo "$hashed" | cut -c3-40)
+            break
         fi
     done < "$PWD/.girt/objects/commit/$1"
+
+    if [ -n "$dir" ] && [ -n "$name" ]; then
+        gunzip -c -n "$PWD/.girt/objects/blob/$dir/$name"
+    else
+        echo "$0: error: '$2' not found in commit $1" >&2
+        exit 1
+    fi
 }
 
 if ! test -z "$commit"; then
-    load_commit $commit $filename
+    load_commit "$commit" "$filename"
     exit 0
 fi
 
 # current index
 while read -r LINE; do
     file=$(echo "$LINE" | cut -f2)
-    if [ "$file" != "$filename" ]; then continue 
+    if [ "$file" = "$filename" ]; then 
+        dir=$(echo "$LINE" | cut -c1-2) # 2 char
+        name=$(echo "$LINE" | cut -c3-40)
     fi
-    dir=$(echo "$LINE" | cut -c1-2) # 2 char
-    name=$(echo "$LINE" | cut -c3-40)
+done < "$PWD/.girt/index"
 
-    if (! test -z $dir) && (! test -z $name); then
-        gunzip -c -n "$PWD/.girt/objects/blob/$dir/$name"
-    fi
-    exit 0
-done < $PWD/.girt/index
+if [ -n "$dir" ] && [ -n "$name" ]; then
+    gunzip -c -n "$PWD/.girt/objects/blob/$dir/$name"
+else
+    echo "$0: error: '$filename' not found in index" >&2
+    exit 1
+fi

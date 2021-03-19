@@ -23,12 +23,24 @@ for file in "$@"; do
     fi
     mv "$PWD/.girt/tmp/compressed_tmp" "$PWD/.girt/objects/blob/$dir/$name"
     
-    # remove old one
+    # load index file to chack if hash changed
+    newFile=true
     while read -r LINE; do
         filename=$(echo "$LINE" | cut -f2)
-        if [ "$filename" = "$file" ] ; then
-            sed -i "/$LINE/d" "$PWD/.girt/index"
+        hashname=$(echo "$LINE" | cut -f1)
+        if [ "$filename" = "$file" ]; then
+            newFile=false
+            printf "%s\t%s\n" "$hashed" "$filename" >> "$PWD/.girt/index.tmp"
+        else
+            echo "$LINE" >> "$PWD/.girt/index.tmp"
         fi
     done < "$PWD/.girt/index"
-    printf "%s\t%s\n" "$hashed" "$file" >> "$PWD/.girt/index"
+
+    if $newFile; then
+        printf "%s\t%s\n" "$hashed" "$file" >> "$PWD/.girt/index.tmp"
+    fi
+
+    mv "$PWD/.girt/index.tmp" "$PWD/.girt/index"
+
+
 done

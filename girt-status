@@ -1,4 +1,5 @@
 #!/bin/dash
+. girt-helper
 
 # check current location
 if ! test -e "$PWD/.girt"; then
@@ -12,20 +13,20 @@ for file in *; do
     fi
 done
 
-cut -f2 < "$PWD/.girt/index" >> "$PWD/.girt/tmp/allfiles.tmp"
-cut -f2 < "$PWD/.girt/index" >> "$PWD/.girt/tmp/allfiles.tmp"
+cut -f2 < "$INDEX_FILE" >> "$PWD/.girt/tmp/allfiles.tmp"
+cut -f2 < "$INDEX_FILE" >> "$PWD/.girt/tmp/allfiles.tmp"
 
 commit_number=$(tail -n1 "$PWD/.girt/commits" | cut -f1)
 if test -n "$commit_number"; then
-    cut -f2 < "$PWD/.girt/objects/commit/$commit_number" >> "$PWD/.girt/tmp/allfiles.tmp"
+    cut -f2 < "$COMMIT_DIR/$commit_number" >> "$PWD/.girt/tmp/allfiles.tmp"
 fi
 
 files=$(sort "$PWD/.girt/tmp/allfiles.tmp" | uniq)
 rm "$PWD/.girt/tmp/allfiles.tmp"
 
 for file in $files; do
-    LINE=$(grep -P "\s*\Q$file\E$" "$PWD/.girt/index") # index file
-    REPO_LATEST_LINE=$(grep -P "\s*\Q$file\E$" "$PWD/.girt/objects/commit/$commit_number") # latest commit file
+    LINE=$(grep -P "\s*\Q$file\E$" "$INDEX_FILE") # index file
+    REPO_LATEST_LINE=$(grep -P "\s*\Q$file\E$" "$COMMIT_DIR/$commit_number") # latest commit file
 
     if ! test -e "$PWD/$file" && test -n "$LINE" && test -n "$REPO_LATEST_LINE"; then
         echo "$file - file deleted"

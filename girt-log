@@ -1,4 +1,5 @@
 #!/bin/dash
+. girt-helper
 if ! test -e "$PWD/.girt"; then
     echo "$0: error: girt repository directory .girt not found" >&2
     exit 1

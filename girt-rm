@@ -1,4 +1,5 @@
 #!/bin/dash
+. girt-helper
 
 # check current location
 if ! test -e "$PWD/.girt"; then
@@ -38,8 +39,8 @@ for filename in "$@"; do
     # check local changes
     currentHash=$(gzip -c -n "$PWD/$filename"|sha1sum|cut -d' ' -f1)
 
-    LINE=$(grep -P "\s*\Q$filename\E$" "$PWD/.girt/index")
-    REPO_LATEST_LINE=$(grep -P "\s*\Q$1\E$" "$PWD/.girt/objects/commit/$latest_commit")
+    LINE=$(grep -P "\s*\Q$filename\E$" "$INDEX_FILE")
+    REPO_LATEST_LINE=$(grep -P "\s*\Q$1\E$" "$COMMIT_DIR/$latest_commit")
     hashed=$(echo "$LINE" | cut -f1)
     repo_latest_hashed=$(echo "$REPO_LATEST_LINE" | cut -f1)
 
@@ -50,7 +51,7 @@ for filename in "$@"; do
     fi
 
     if test $FORCE -eq 1 ; then
-        sed -i "/$LINE/d" "$PWD/.girt/index"
+        sed -i "/$LINE/d" "$INDEX_FILE"
         if test $CACHED -eq 0; then
             rm -f "$filename"
         fi
@@ -64,7 +65,7 @@ for filename in "$@"; do
     fi
 
     if test $CACHED -eq 1 ; then
-        sed -i "/$LINE/d" "$PWD/.girt/index"
+        sed -i "/$LINE/d" "$INDEX_FILE"
         continue
     fi
 
@@ -79,7 +80,7 @@ for filename in "$@"; do
         exit 1
     fi
 
-    sed -i "/$LINE/d" "$PWD/.girt/index"
+    sed -i "/$LINE/d" "$INDEX_FILE"
     rm -f "$filename"
 
 done

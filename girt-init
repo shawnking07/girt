@@ -1,8 +1,11 @@
 #!/bin/dash
+. girt-helper
+
 if test -e "$PWD/.girt" ; then
     echo "$0: error: .girt already exists" >&2
     exit 1
 fi
-mkdir -p $PWD/.girt/tmp $PWD/.girt/logs $PWD/.girt/objects/commit $PWD/.girt/objects/blob $PWD/.girt/refs/heads
-touch $PWD/.girt/HEAD $PWD/.girt/index $PWD/.girt/commits
+mkdir -p "$PWD/.girt/tmp" "$COMMIT_DIR" "$BLOB_DIR" "$PWD/.girt/refs/heads"
+touch "$HEAD_FILE" "$INDEX_FILE" "$PWD/.girt/commits"
+echo "master" > "$HEAD_FILE"
 echo "Initialized empty girt repository in .girt"

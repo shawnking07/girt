@@ -1,4 +1,5 @@
 #!/bin/dash
+. girt-helper
 if test $# -eq 0 ; then
     echo "usage: $0 <filenames>"
     exit 1
@@ -9,7 +10,7 @@ if ! test -e "$PWD/.girt"; then
     exit 1
 fi
 for file in "$@"; do
-    LINE=$(grep -P "\s*\Q$1\E$" "$PWD/.girt/index")
+    LINE=$(grep -P "\s*\Q$1\E$" "$INDEX_FILE")
     if ! test -e "$PWD/$file" && test -z "$LINE";then
         echo "$0: error: can not open '$1'" >&2
         continue
@@ -18,7 +19,7 @@ for file in "$@"; do
         # PATCH
         # exist in index but removed in system
         # remove file
-        sed -i "/$LINE/d" "$PWD/.girt/index"
+        sed -i "/$LINE/d" "$INDEX_FILE"
         continue
     fi
     gzip -c -n "$PWD/$file" > "$PWD/.girt/tmp/compressed_tmp"
@@ -26,10 +27,10 @@ for file in "$@"; do
     dir=$(echo "$hashed" | cut -c1-2) # 2 char
     name=$(echo "$hashed" | cut -c3-40)
 
-    if ! test -e "$PWD/.girt/objects/blob/$dir"; then
-        mkdir -p "$PWD/.girt/objects/blob/$dir"
+    if ! test -e "$BLOB_DIR/$dir"; then
+        mkdir -p "$BLOB_DIR/$dir"
     fi
-    mv "$PWD/.girt/tmp/compressed_tmp" "$PWD/.girt/objects/blob/$dir/$name"
+    mv "$PWD/.girt/tmp/compressed_tmp" "$BLOB_DIR/$dir/$name"
     
     # load index file to chack if hash changed
     newFile=true
@@ -38,17 +39,17 @@ for file in "$@"; do
         hashname=$(echo "$LINE" | cut -f1)
         if [ "$filename" = "$file" ]; then
             newFile=false
-            printf "%s\t%s\n" "$hashed" "$filename" >> "$PWD/.girt/index.tmp"
+            printf "%s\t%s\n" "$hashed" "$filename" >> "$INDEX_FILE.tmp"
         else
-            echo "$LINE" >> "$PWD/.girt/index.tmp"
+            echo "$LINE" >> "$INDEX_FILE.tmp"
         fi
-    done < "$PWD/.girt/index"
+    done < "$INDEX_FILE"
 
     if $newFile; then
-        printf "%s\t%s\n" "$hashed" "$file" >> "$PWD/.girt/index.tmp"
+        printf "%s\t%s\n" "$hashed" "$file" >> "$INDEX_FILE.tmp"
     fi
 
-    mv "$PWD/.girt/index.tmp" "$PWD/.girt/index"
+    mv "$INDEX_FILE.tmp" "$INDEX_FILE"
 
 
 done

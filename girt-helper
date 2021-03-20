@@ -1,0 +1,6 @@
+#!/bin/dash
+
+export BLOB_DIR="$PWD/.girt/objects/blob"
+export COMMIT_DIR="$PWD/.girt/objects/commit"
+export INDEX_FILE="$PWD/.girt/index"
+export HEAD_FILE="$PWD/.girt/HEAD"

@@ -1,0 +1,83 @@
+#!/bin/dash
+
+# check current location
+if ! test -e "$PWD/.girt"; then
+    echo "$0: error: girt repository directory .girt not found" >&2
+    exit 1
+fi
+
+usage() { echo "usage: $0 [--force] [--cached] <filenames>" 1>&2; exit 1; }
+
+PARSED_ARGUMENTS=$(getopt -n "$0" -o f,c --long force,cached -- "$@")
+VALID_ARGUMENTS=$?
+if [ "$VALID_ARGUMENTS" != "0" ]; then
+  usage
+fi
+
+FORCE=0
+CACHED=0
+eval set -- "$PARSED_ARGUMENTS"
+while :
+do
+  case "$1" in
+    -f | --force) FORCE=1 ; shift   ;;
+    -c | --cached) CACHED=1 ; shift   ;;
+    --) shift; break ;;
+    # If invalid options were passed, then getopt should have reported an error,
+    # which we checked as VALID_ARGUMENTS when getopt was called...
+    *)
+       usage ;;
+  esac
+done
+
+# get latest commit
+latest_commit=$(tail -n1 "$PWD/.girt/commits" | cut -f1)
+
+
+for filename in "$@"; do
+    # check local changes
+    currentHash=$(gzip -c -n "$PWD/$filename"|sha1sum|cut -d' ' -f1)
+
+    LINE=$(grep -P "\s*\Q$1\E$" "$PWD/.girt/index")
+    REPO_LATEST_LINE=$(grep -P "\s*\Q$1\E$" "$PWD/.girt/objects/commit/$latest_commit")
+    hashed=$(echo "$LINE" | cut -f1)
+    repo_latest_hashed=$(echo "$REPO_LATEST_LINE" | cut -f1)
+
+    if test -z "$hashed" ; then
+        # not in index
+        echo "$0: error: '$filename' is not in the girt repository" 1>&2
+        exit 1
+    fi
+
+    if test $FORCE -eq 1 ; then
+        sed -i "/$LINE/d" "$PWD/.girt/index"
+        rm -f "$filename"
+        exit 0
+    fi
+
+    if test "$currentHash" != "$hashed" && test -n "$repo_latest_hashed" && test "$hashed" != "$repo_latest_hashed" ;then
+        # file added and changed 
+        echo "$0: error: '$filename' in index is different to both to the working file and the repository" 1>&2
+        exit 1
+    fi
+
+    if test $CACHED -eq 1 ; then
+        sed -i "/$LINE/d" "$PWD/.girt/index"
+        exit 0
+    fi
+
+    if test "$currentHash" = "$hashed" && test "$currentHash" != "$repo_latest_hashed"; then
+        # file added but does not commit
+        echo "$0: error: '$filename' has staged changes in the index" 1>&2
+        exit 1
+    fi
+    if test "$currentHash" != "$hashed" ; then
+        # file changed
+        echo "$0: error: '$filename' in the repository is different to the working file" 1>&2
+        exit 1
+    fi
+
+    sed -i "/$LINE/d" "$PWD/.girt/index"
+    rm -f "$filename"
+
+done

@@ -1,1 +1,54 @@
 #!/bin/dash
+if test $# -eq 0 ; then
+    echo "usage: $0 <filenames>"
+    exit 1
+fi
+# check current location
+if ! test -e "$PWD/.girt"; then
+    echo "$0: error: girt repository directory .girt not found" >&2
+    exit 1
+fi
+for file in "$@"; do
+    LINE=$(grep -P "\s*\Q$1\E$" "$PWD/.girt/index")
+    if ! test -e "$PWD/$file" && test -z "$LINE";then
+        echo "$0: error: can not open '$1'" >&2
+        continue
+    fi
+    if ! test -e "$PWD/$file" && test -n "$LINE";then
+        # PATCH
+        # exist in index but removed in system
+        # remove file
+        sed -i "/$LINE/d" "$PWD/.girt/index"
+        continue
+    fi
+    gzip -c -n "$PWD/$file" > "$PWD/.girt/tmp/compressed_tmp"
+    hashed=$(cat "$PWD/.girt/tmp/compressed_tmp"|sha1sum|cut -d' ' -f1)
+    dir=$(echo "$hashed" | cut -c1-2) # 2 char
+    name=$(echo "$hashed" | cut -c3-40)
+
+    if ! test -e "$PWD/.girt/objects/blob/$dir"; then
+        mkdir -p "$PWD/.girt/objects/blob/$dir"
+    fi
+    mv "$PWD/.girt/tmp/compressed_tmp" "$PWD/.girt/objects/blob/$dir/$name"
+    
+    # load index file to chack if hash changed
+    newFile=true
+    while read -r LINE; do
+        filename=$(echo "$LINE" | cut -f2)
+        hashname=$(echo "$LINE" | cut -f1)
+        if [ "$filename" = "$file" ]; then
+            newFile=false
+            printf "%s\t%s\n" "$hashed" "$filename" >> "$PWD/.girt/index.tmp"
+        else
+            echo "$LINE" >> "$PWD/.girt/index.tmp"
+        fi
+    done < "$PWD/.girt/index"
+
+    if $newFile; then
+        printf "%s\t%s\n" "$hashed" "$file" >> "$PWD/.girt/index.tmp"
+    fi
+
+    mv "$PWD/.girt/index.tmp" "$PWD/.girt/index"
+
+
+done

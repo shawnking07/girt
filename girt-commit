@@ -29,11 +29,11 @@ if test -z "$message" ; then
     usage 
 fi
 
-if [ ! -s "$PWD/.girt/index" ]; then
-# index is empty
-    echo "nothing to commit"
-    exit 0
-fi
+# if [ ! -s "$PWD/.girt/index" ]; then
+# # index is empty
+#     echo "nothing to commit"
+#     exit 0
+# fi
 
 if $all; then
     # all files option

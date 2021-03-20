@@ -9,8 +9,16 @@ if ! test -e "$PWD/.girt"; then
     exit 1
 fi
 for file in "$@"; do
-    if ! test -e "$PWD/$file";then
+    LINE=$(grep -P "\s*\Q$1\E$" "$PWD/.girt/index")
+    if ! test -e "$PWD/$file" && test -z "$LINE";then
         echo "$0: error: can not open '$1'" >&2
+        continue
+    fi
+    if ! test -e "$PWD/$file" && test -n "$LINE";then
+        # PATCH
+        # exist in index but removed in system
+        # remove file
+        sed -i "/$LINE/d" "$PWD/.girt/index"
         continue
     fi
     gzip -c -n "$PWD/$file" > "$PWD/.girt/tmp/compressed_tmp"

@@ -1,5 +1,9 @@
 # COMP(2041|9044) Assignment 1: girt
 
+## NOTICE
+
+This project cannot run on macOS. ONLY tested on UNSW vlab and Ubuntu.
+
 ## Introduction
 
 Your task in this assignment is to implement Girt, a subset of the version control system Git.

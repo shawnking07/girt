@@ -38,7 +38,7 @@ for filename in "$@"; do
     # check local changes
     currentHash=$(gzip -c -n "$PWD/$filename"|sha1sum|cut -d' ' -f1)
 
-    LINE=$(grep -P "\s*\Q$1\E$" "$PWD/.girt/index")
+    LINE=$(grep -P "\s*\Q$filename\E$" "$PWD/.girt/index")
     REPO_LATEST_LINE=$(grep -P "\s*\Q$1\E$" "$PWD/.girt/objects/commit/$latest_commit")
     hashed=$(echo "$LINE" | cut -f1)
     repo_latest_hashed=$(echo "$REPO_LATEST_LINE" | cut -f1)
@@ -51,8 +51,10 @@ for filename in "$@"; do
 
     if test $FORCE -eq 1 ; then
         sed -i "/$LINE/d" "$PWD/.girt/index"
-        rm -f "$filename"
-        exit 0
+        if test $CACHED -eq 0; then
+            rm -f "$filename"
+        fi
+        continue
     fi
 
     if test "$currentHash" != "$hashed" && test -n "$repo_latest_hashed" && test "$hashed" != "$repo_latest_hashed" ;then
@@ -63,7 +65,7 @@ for filename in "$@"; do
 
     if test $CACHED -eq 1 ; then
         sed -i "/$LINE/d" "$PWD/.girt/index"
-        exit 0
+        continue
     fi
 
     if test "$currentHash" = "$hashed" && test "$currentHash" != "$repo_latest_hashed"; then

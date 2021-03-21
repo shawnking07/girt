@@ -1,0 +1,33 @@
+#!/bin/dash
+. girt-helper
+
+# check current location
+if ! test -e "$PWD/.girt"; then
+    echo "$0: error: girt repository directory .girt not found" >&2
+    exit 1
+fi
+
+if test $# -eq 0 ; then
+    echo "usage: $0 <branch>"
+    exit 1
+fi
+
+if [ ! -d "$BRANCHES_DIR/$1" ]; then
+    echo "$0: error: unknown branch '$1'" >&2
+    exit 1
+fi
+
+echo "$1" > "$HEAD_FILE"
+
+. girt-helper # flush file path
+
+while read -r LINE; do
+    dir=$(echo "$LINE" | cut -c1-2) # 2 char
+    name=$(echo "$LINE" | cut -c3-40)
+
+    if [ -n "$dir" ] && [ -n "$name" ]; then
+        gunzip -c -n "$BLOB_DIR/$dir/$name" > "$PWD/$name"
+    fi
+done < "$INDEX_FILE"
+
+echo "Switched to branch '$1'"

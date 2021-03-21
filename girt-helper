@@ -1,5 +1,29 @@
 #!/bin/dash
 
+# ┌────────────────────────────────────────────────────────────────────┐
+# │                                                                    │
+# │           xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx                     │
+# │       xxxxx                                   xxxxxx               │
+# │     xxx                                            xxx             │
+# │    xx                                                xx            │
+# │   x       xxxxxxxx                           xx       xx           │
+# │   x      xxx                                 xx        x           │
+# │   x      xx             xxx                 xxx        xx          │
+# │   x     xx              xxx                 xxx         xx         │
+# │   x     xx      xxxx               xxxxx  xxxxxxx        x         │
+# │   xx    xx   xxxxxxx    xx     xxxxxx     xxxxxxx        x         │
+# │    x    xx     xxxxx   xx      xxxx         xx           x         │
+# │    xx    xxxx  xxxxx    x  x     xx        xxx           x         │
+# │     xx    xxxxxxx xx    x xx     xx        xx            x         │
+# │      xx           x     xxx      xx        xxxxxx       x          │
+# │       xx                                   xxxxx      xxx          │
+# │        xx                                         xxxxx            │
+# │        xxxxxxxxxxxxxxxx xxxxxxxxxxxxxxxxxxxxxxxxxxx                │
+# │               xxxxxxxxxxxxxxxxxxxxxxxxxxx                          │
+# │                                                                    │
+# │                                                                    │
+# └────────────────────────────────────────────────────────────────────┘
+
 export BLOB_DIR="$PWD/.girt/objects/blob"
 export COMMIT_DIR="$PWD/.girt/objects/commit"
 # export COMMITS_FILE="$PWD/.girt/commits"
@@ -13,6 +37,7 @@ if [ -z "$current_branch" ]; then
 fi
 export CURRENT_BRANCH=$current_branch
 
-export BRANCH_DIR="$PWD/.girt/refs/heads/$current_branch"
+export BRANCHES_DIR="$PWD/.girt/refs/heads"
+export BRANCH_DIR="$BRANCHES_DIR/$current_branch"
 export COMMITS_FILE="$BRANCH_DIR/commits"
 export INDEX_FILE="$BRANCH_DIR/index"

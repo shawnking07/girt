@@ -1,0 +1,77 @@
+#!/bin/dash
+. girt-helper
+
+# check current location
+if ! test -e "$PWD/.girt"; then
+    echo "$0: error: girt repository directory .girt not found" >&2
+    exit 1
+fi
+
+usage() { echo "usage: $0 [-d] [branch-name]" 1>&2; exit 1; }
+
+PARSED_ARGUMENTS=$(getopt -n "$0" -o d -- "$@")
+VALID_ARGUMENTS=$?
+if [ "$VALID_ARGUMENTS" != "0" ]; then
+  usage
+fi
+
+delete=0
+eval set -- "$PARSED_ARGUMENTS"
+while :
+do
+  case "$1" in
+    -d) delete=1 ; shift   ;;
+    --) shift; break ;;
+    # If invalid options were passed, then getopt should have reported an error,
+    # which we checked as VALID_ARGUMENTS when getopt was called...
+    *)
+       usage ;;
+  esac
+done
+
+if [ $delete = 1 ] && [ -z "$1" ]; then
+    echo "$0: error: branch name required" >&2
+    exit 1
+fi
+
+if [ -z "$1" ]; then
+    # list branches
+    next_commit_number=$(cat "$NEXT_COMMIT_NUMBER_FILE")
+    if [ "$next_commit_number" -eq 0 ]; then
+        echo "$0: error: this command can not be run until after the first commit" 1>&2
+        exit 1
+    fi
+    for b in "$BRANCHES_DIR"/*; do
+        if [ -d "$b" ]; then
+            basename "$b"
+        fi
+    done
+    exit 0
+fi
+
+# error handle START
+if [ -d "$BRANCHES_DIR/$1" ] && [ $delete = 0 ]; then
+    echo "$0: error: branch '$1' already exists" >&2
+    exit 1
+fi
+
+if [ ! -e "$BRANCHES_DIR/$1" ] && [ $delete = 1 ]; then
+    echo "$0: error: branch '$1' doesn't exist" >&2
+    exit 1
+fi
+# error handle END
+
+if [ $delete = 1 ]; then
+    if [ "$1" = "master" ]; then
+        echo "$0: error: can not delete branch '$1'" >&2
+        exit 1
+    fi
+    rm -rf "${BRANCHES_DIR:?}"/"$1"
+    echo "Deleted branch '$1'"
+    exit 0
+fi
+
+mkdir -p "$BRANCHES_DIR"/"$1"
+cp "$INDEX_FILE" "$BRANCHES_DIR/$1/index"
+cp "$COMMITS_FILE" "$BRANCHES_DIR/$1/commits"
+

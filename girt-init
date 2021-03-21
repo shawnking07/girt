@@ -5,7 +5,8 @@ if test -e "$PWD/.girt" ; then
     echo "$0: error: .girt already exists" >&2
     exit 1
 fi
-mkdir -p "$PWD/.girt/tmp" "$COMMIT_DIR" "$BLOB_DIR" "$PWD/.girt/refs/heads"
-touch "$HEAD_FILE" "$INDEX_FILE" "$PWD/.girt/commits"
+mkdir -p "$PWD/.girt/tmp" "$COMMIT_DIR" "$BLOB_DIR" "$BRANCH_DIR"
+touch "$INDEX_FILE" "$COMMITS_FILE"
 echo "master" > "$HEAD_FILE"
+echo 0 > "$PWD/.girt/NEXT_COMMIT_NUMBER"
 echo "Initialized empty girt repository in .girt"

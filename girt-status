@@ -16,7 +16,7 @@ done
 cut -f2 < "$INDEX_FILE" >> "$PWD/.girt/tmp/allfiles.tmp"
 cut -f2 < "$INDEX_FILE" >> "$PWD/.girt/tmp/allfiles.tmp"
 
-commit_number=$(tail -n1 "$PWD/.girt/commits" | cut -f1)
+commit_number=$(tail -n1 "$COMMITS_FILE" | cut -f1)
 if test -n "$commit_number"; then
     cut -f2 < "$COMMIT_DIR/$commit_number" >> "$PWD/.girt/tmp/allfiles.tmp"
 fi

@@ -2,5 +2,17 @@
 
 export BLOB_DIR="$PWD/.girt/objects/blob"
 export COMMIT_DIR="$PWD/.girt/objects/commit"
-export INDEX_FILE="$PWD/.girt/index"
+# export COMMITS_FILE="$PWD/.girt/commits"
+# export INDEX_FILE="$PWD/.girt/index"
 export HEAD_FILE="$PWD/.girt/HEAD"
+export NEXT_COMMIT_NUMBER_FILE="$PWD/.girt/NEXT_COMMIT_NUMBER"
+
+current_branch=$(cat "$HEAD_FILE" 2> /dev/null)
+if [ -z "$current_branch" ]; then
+    current_branch="master"
+fi
+export CURRENT_BRANCH=$current_branch
+
+export BRANCH_DIR="$PWD/.girt/refs/heads/$current_branch"
+export COMMITS_FILE="$BRANCH_DIR/commits"
+export INDEX_FILE="$BRANCH_DIR/index"

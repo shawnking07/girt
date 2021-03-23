@@ -17,7 +17,6 @@ if [ ! -d "$BRANCHES_DIR/$1" ]; then
     exit 1
 fi
 
-commit_number=$(tail -n1 "$COMMITS_FILE" | cut -f1)
 dirstatus=$(girt-status)
 while read -r LINE; do
     status=$(echo "$LINE" | sed 's/ - /\t/g')
@@ -27,31 +26,65 @@ while read -r LINE; do
     if [ "$type" = "same as repo" ]; then
         rm "$PWD/$filename"
     fi
+
+    # uncomment this for overwritten checkout
+    # this has not been done yet
+    #
+    # if (echo "$type" | grep 'file changed, changes not staged for commit' > /dev/null); then
+    #     echo "$filename" >> "$TMP_DIR/changed_file.tmp"
+    # fi
 done <<EOF
 $dirstatus
 EOF
 
+
+old_branch="$CURRENT_BRANCH"
 echo "$1" > "$HEAD_FILE"
 . girt-helper # flush file path
 
 commit_number=$(tail -n1 "$COMMITS_FILE" | cut -f1)
-
 while read -r LINE; do
     filename=$(echo "$LINE" | cut -f2)
     dir=$(echo "$LINE" | cut -c1-2) # 2 char
     name=$(echo "$LINE" | cut -c3-40)
 
-    if [ ! -e "$PWD/$filename" ] && [ -n "$dir" ] && [ -n "$name" ]; then
-        gunzip -c -n "$BLOB_DIR/$dir/$name" > "$PWD/$filename"
+    if [ -z "$dir" ] && [ -z "$name" ]; then
+        continue
+    fi
+
+    if [ -e "$TMP_DIR/changed_file.tmp" ]; then
+        if (grep -P "^\Q$filename\E$" "$TMP_DIR/changed_file.tmp" > /dev/null); then
+            # changed file
+            echo "$filename" >> "$TMP_DIR/changed_file.tmp1"
+        fi
+    fi
+
+    if [ ! -e "$PWD/$filename" ]; then
+        printf "%s\t%s\n" "$BLOB_DIR/$dir/$name" "$filename" >> "$TMP_DIR/normal_checkout.tmp"
     fi
 done < "$COMMIT_DIR/$commit_number"
 
-# flush index file hash
-if [ -e "$TMP_DIR/checkout_unchanged_list.tmp" ]; then
-    while read -r LINE; do
-        girt-add "$LINE" 2> /dev/null
-    done < "$TMP_DIR/checkout_unchanged_list.tmp"
-    rm "$TMP_DIR/checkout_unchanged_list.tmp"
+rm "$TMP_DIR/changed_file.tmp" 2> /dev/null
+
+if [ -e "$TMP_DIR/changed_file.tmp1" ]; then
+    echo "$0: error: Your changes to the following files would be overwritten by checkout:" >&2
+    cat "$TMP_DIR/changed_file.tmp1" >&2
+    rm "$TMP_DIR/changed_file.tmp1"
+
+    echo "$old_branch" > "$HEAD_FILE"
+    . girt-helper # flush file path
+    exit 1
 fi
+
+if [ -e "$TMP_DIR/normal_checkout.tmp" ]; then
+    while read -r LINE; do
+        compressed_file_path=$(echo "$LINE" | cut -f1)
+        filename=$(echo "$LINE" | cut -f2)
+        gunzip -c -n "$compressed_file_path" > "$PWD/$filename"
+        girt-add "$filename" # flush index file
+    done < "$TMP_DIR/normal_checkout.tmp"
+    rm "$TMP_DIR/normal_checkout.tmp"
+fi
+
 
 echo "Switched to branch '$1'"

@@ -17,16 +17,29 @@ if [ ! -d "$BRANCHES_DIR/$1" ]; then
     exit 1
 fi
 
-echo "$1" > "$HEAD_FILE"
+dirstatus=$(girt-status)
+while read -r LINE; do
+    status=$(echo "$LINE" | sed 's/ - /\t/g')
+    filename=$(echo "$status" | cut -f1)
+    type=$(echo "$status" | cut -f2)
 
+    if test "$type" = "same as repo"; then
+        rm "$PWD/$filename"
+    fi
+done <<EOF
+$dirstatus
+EOF
+
+echo "$1" > "$HEAD_FILE"
 . girt-helper # flush file path
 
 while read -r LINE; do
+    filename=$(echo "$LINE" | cut -f2)
     dir=$(echo "$LINE" | cut -c1-2) # 2 char
     name=$(echo "$LINE" | cut -c3-40)
 
     if [ -n "$dir" ] && [ -n "$name" ]; then
-        gunzip -c -n "$BLOB_DIR/$dir/$name" > "$PWD/$name"
+        gunzip -c -n "$BLOB_DIR/$dir/$name" > "$PWD/$filename"
     fi
 done < "$INDEX_FILE"
 

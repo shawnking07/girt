@@ -80,7 +80,15 @@ for filename in "$@"; do
         exit 1
     fi
 
-    sed -i "/$LINE/d" "$INDEX_FILE"
-    rm -f "$filename"
+    echo "$LINE" >> "$TMP_DIR/rm.tmp"
 
 done
+
+if [ -e "$TMP_DIR/rm.tmp" ]; then
+    while read -r LINE; do
+        filename=$(echo "$LINE" | cut -f2)
+        sed -i "/$LINE/d" "$INDEX_FILE"
+        rm -f "$filename"
+    done < "$TMP_DIR/rm.tmp"
+    rm "$TMP_DIR/rm.tmp"
+fi

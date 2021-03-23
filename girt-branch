@@ -72,6 +72,6 @@ if [ $delete = 1 ]; then
 fi
 
 mkdir -p "$BRANCHES_DIR"/"$1"
-cp "$INDEX_FILE" "$BRANCHES_DIR/$1/index"
+# cp "$INDEX_FILE" "$BRANCHES_DIR/$1/index"
 cp "$COMMITS_FILE" "$BRANCHES_DIR/$1/commits"
 

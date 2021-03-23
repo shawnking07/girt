@@ -65,18 +65,18 @@ for file in $files; do
 
     if test "$currentHash" != "$hashed" && test -n "$repo_latest_hashed" && test "$hashed" != "$repo_latest_hashed" ;then
         # file added and changed 
-        echo "$file - file changed, different changes staged for commit" 1>&2
+        echo "$file - file changed, different changes staged for commit"
         continue
     fi
 
     if test "$currentHash" = "$hashed" && test "$currentHash" != "$repo_latest_hashed"; then
         # file added but does not commit
-        echo "$file - file changed, changes staged for commit" 1>&2
+        echo "$file - file changed, changes staged for commit"
         continue
     fi
     if test "$currentHash" != "$hashed" ; then
         # file changed
-        echo "$file - file changed, changes not staged for commit" 1>&2
+        echo "$file - file changed, changes not staged for commit"
         continue
     fi
 

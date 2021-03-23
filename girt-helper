@@ -24,10 +24,11 @@
 # │                                                                    │
 # └────────────────────────────────────────────────────────────────────┘
 
+export TMP_DIR="$PWD/.girt/tmp"
 export BLOB_DIR="$PWD/.girt/objects/blob"
 export COMMIT_DIR="$PWD/.girt/objects/commit"
 # export COMMITS_FILE="$PWD/.girt/commits"
-# export INDEX_FILE="$PWD/.girt/index"
+export INDEX_FILE="$PWD/.girt/index"
 export HEAD_FILE="$PWD/.girt/HEAD"
 export NEXT_COMMIT_NUMBER_FILE="$PWD/.girt/NEXT_COMMIT_NUMBER"
 
@@ -40,4 +41,4 @@ export CURRENT_BRANCH=$current_branch
 export BRANCHES_DIR="$PWD/.girt/refs/heads"
 export BRANCH_DIR="$BRANCHES_DIR/$current_branch"
 export COMMITS_FILE="$BRANCH_DIR/commits"
-export INDEX_FILE="$BRANCH_DIR/index"
+# export INDEX_FILE="$BRANCH_DIR/index"

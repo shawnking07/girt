@@ -17,13 +17,14 @@ if [ ! -d "$BRANCHES_DIR/$1" ]; then
     exit 1
 fi
 
+commit_number=$(tail -n1 "$COMMITS_FILE" | cut -f1)
 dirstatus=$(girt-status)
 while read -r LINE; do
     status=$(echo "$LINE" | sed 's/ - /\t/g')
     filename=$(echo "$status" | cut -f1)
     type=$(echo "$status" | cut -f2)
 
-    if test "$type" = "same as repo"; then
+    if [ "$type" = "same as repo" ]; then
         rm "$PWD/$filename"
     fi
 done <<EOF
@@ -33,14 +34,24 @@ EOF
 echo "$1" > "$HEAD_FILE"
 . girt-helper # flush file path
 
+commit_number=$(tail -n1 "$COMMITS_FILE" | cut -f1)
+
 while read -r LINE; do
     filename=$(echo "$LINE" | cut -f2)
     dir=$(echo "$LINE" | cut -c1-2) # 2 char
     name=$(echo "$LINE" | cut -c3-40)
 
-    if [ -n "$dir" ] && [ -n "$name" ]; then
+    if [ ! -e "$PWD/$filename" ] && [ -n "$dir" ] && [ -n "$name" ]; then
         gunzip -c -n "$BLOB_DIR/$dir/$name" > "$PWD/$filename"
     fi
-done < "$INDEX_FILE"
+done < "$COMMIT_DIR/$commit_number"
+
+# flush index file hash
+if [ -e "$TMP_DIR/checkout_unchanged_list.tmp" ]; then
+    while read -r LINE; do
+        girt-add "$LINE" 2> /dev/null
+    done < "$TMP_DIR/checkout_unchanged_list.tmp"
+    rm "$TMP_DIR/checkout_unchanged_list.tmp"
+fi
 
 echo "Switched to branch '$1'"

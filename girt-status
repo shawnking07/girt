@@ -26,7 +26,7 @@ rm "$PWD/.girt/tmp/allfiles.tmp"
 
 for file in $files; do
     LINE=$(grep -P "\s*\Q$file\E$" "$INDEX_FILE") # index file
-    REPO_LATEST_LINE=$(grep -P "\s*\Q$file\E$" "$COMMIT_DIR/$commit_number") # latest commit file
+    [ -f "$COMMIT_DIR/$commit_number" ] && REPO_LATEST_LINE=$(grep -P "\s*\Q$file\E$" "$COMMIT_DIR/$commit_number") # latest commit file
 
     if ! test -e "$PWD/$file" && test -n "$LINE" && test -n "$REPO_LATEST_LINE"; then
         echo "$file - file deleted"

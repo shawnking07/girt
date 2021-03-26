@@ -1,0 +1,88 @@
+#!/bin/dash
+. girt-helper
+
+# check current location
+if ! test -e "$PWD/.girt"; then
+    echo "$0: error: girt repository directory .girt not found" >&2
+    exit 1
+fi
+
+usage() { echo "usage: $0 (branch-name|commit) -m message" 1>&2; exit 1; }
+
+PARSED_ARGUMENTS=$(getopt -n "$0" -o m: -- "$@")
+VALID_ARGUMENTS=$?
+if [ "$VALID_ARGUMENTS" != "0" ]; then
+  usage
+fi
+eval set -- "$PARSED_ARGUMENTS"
+while :
+do
+  case "$1" in
+    -m) message="$2" ; shift 2  ;;
+    --) shift; break ;;
+    *)
+       usage ;;
+  esac
+done
+
+
+if test -z "$message" ; then 
+    usage 
+fi
+
+if test -e "$BRANCHES_DIR/$1"; then
+    # branch name
+    commit_number=$(tail -n1 "$BRANCHES_DIR/$1/commits")
+fi
+
+# this has to be a number
+
+[ -n "${1##[0-9]}" ] && {
+    echo "branch not found" 1>&2 ; exit 1;
+}
+
+next_commit_number=$(cat "$NEXT_COMMIT_NUMBER_FILE")
+if test "$1" -le "$next_commit_number"; then
+    commit_number="$1"
+fi
+
+if test "$commit_number" -eq $((next_commit_number-1)); then
+    echo "Fast-forward: no commit created"
+    exit 0
+fi
+
+dirstatus=$(girt-status | sed 's/ - /\t/g')
+
+# TODO: 
+changed=false
+while read -r LINE; do
+    # check if there are files changed
+    filename=$(echo "$LINE"|cut -f2)
+    hashed=$(echo "$LINE"|cut -f1)
+    status=$(echo "$dirstatus"|grep -P "^\Q$filename\E\t"|cut -f2)
+    if echo "$status" | grep -E -q "file changed" ; then
+        # file changed
+        changed=true
+        break
+    fi
+
+done < "$COMMIT_DIR/$commit_number"
+
+if $changed; then
+    echo "$0: error: can not merge" >&2
+    exit 1
+fi
+
+while read -r LINE; do
+    # loop commit again for cp files
+    filename=$(echo "$LINE"|cut -f2)
+    hashed=$(echo "$LINE"|cut -f1)
+    # status=$(echo "$dirstatus"|grep -P "^\Q$filename\E\t"|cut -f2)
+    dir=$(echo "$LINE" | cut -c1-2) # 2 char
+    name=$(echo "$LINE" | cut -c3-40)
+    gunzip -c -n "$BLOB_DIR/$dir/$name" > "$PWD/$filename"
+
+done < "$COMMIT_DIR/$commit_number"
+
+printf "Fast-forward: "
+girt-commit -m "$message" | sed "s/nothing to commit/no commit created/g"

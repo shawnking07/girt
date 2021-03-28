@@ -32,21 +32,23 @@ fi
 
 if test -e "$BRANCHES_DIR/$1"; then
     # branch name
-    commit_number=$(tail -n1 "$BRANCHES_DIR/$1/commits")
+    commit_number=$(tail -n1 "$BRANCHES_DIR/$1/commits" | cut -f1)
 fi
 
 # this has to be a number
 
-[ -n "${1##[0-9]}" ] && {
+[ -z "$commit_number" ] && [ -n "${1##[0-9]}" ] && {
     echo "branch not found" 1>&2 ; exit 1;
 }
 
-next_commit_number=$(cat "$NEXT_COMMIT_NUMBER_FILE")
-if test "$1" -le "$next_commit_number"; then
-    commit_number="$1"
-fi
+[ -z "${1##[0-9]}" ] && {
+    next_commit_number=$(cat "$NEXT_COMMIT_NUMBER_FILE")
+    if test "$1" -le "$next_commit_number"; then
+        commit_number="$1"
+    fi
+}
 
-if test "$commit_number" -eq $((next_commit_number-1)); then
+if [ -z "$commit_number" ] && test "$commit_number" -eq $((next_commit_number-1)); then
     echo "Fast-forward: no commit created"
     exit 0
 fi

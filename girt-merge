@@ -38,7 +38,7 @@ fi
 # this has to be a number
 
 [ -z "$commit_number" ] && [ -n "${1##[0-9]}" ] && {
-    echo "branch not found" 1>&2 ; exit 1;
+    echo "$0: error: unknown branch '$1'" 1>&2 ; exit 1;
 }
 
 [ -z "${1##[0-9]}" ] && {
@@ -57,6 +57,7 @@ dirstatus=$(girt-status | sed 's/ - /\t/g')
 
 # TODO: 
 changed=false
+
 while read -r LINE; do
     # check if there are files changed
     filename=$(echo "$LINE"|cut -f2)
@@ -85,6 +86,15 @@ while read -r LINE; do
     gunzip -c -n "$BLOB_DIR/$dir/$name" > "$PWD/$filename"
 
 done < "$COMMIT_DIR/$commit_number"
+
+
+current_commit_number=$(tail -n1 "$COMMITS_FILE" | cut -f1)
+log=$(girt-log | cut -d' ' -f1)
+exist=$(echo "$log"|grep "$current_commit_number")
+[ -n "$exist" ] && {
+    log=$(echo "$log"|sed -n /"$current_commit_number"/,'$p' | tail -n +2)
+    echo "$log" >> "$COMMITS_FILE"
+}
 
 printf "Fast-forward: "
 girt-commit -m "$message" | sed "s/nothing to commit/no commit created/g"

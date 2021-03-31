@@ -27,7 +27,7 @@ done
 
 
 if test -z "$message" ; then 
-    echo "$0: empty commit message" >&2
+    echo "$0: error: empty commit message" >&2
     exit 1
 fi
 
@@ -59,6 +59,13 @@ dirstatus=$(girt-status | sed 's/ - /\t/g')
 # TODO: 
 changed=false
 
+current_commit_number=$(tail -n1 "$COMMITS_FILE" | cut -f1)
+
+[ "$current_commit_number" -gt "$commit_number" ] && {
+    # merged commit is older
+    changed=true
+}
+
 while read -r LINE; do
     # check if there are files changed
     filename=$(echo "$LINE"|cut -f2)
@@ -89,7 +96,6 @@ while read -r LINE; do
 done < "$COMMIT_DIR/$commit_number"
 
 
-current_commit_number=$(tail -n1 "$COMMITS_FILE" | cut -f1)
 log=$(girt-log | cut -d' ' -f1)
 exist=$(echo "$log"|grep "$current_commit_number")
 [ -n "$exist" ] && {

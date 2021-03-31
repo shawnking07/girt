@@ -27,7 +27,8 @@ done
 
 
 if test -z "$message" ; then 
-    usage 
+    echo "$0: empty commit message" >&2
+    exit 1
 fi
 
 if test -e "$BRANCHES_DIR/$1"; then

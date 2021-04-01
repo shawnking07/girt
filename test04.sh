@@ -17,7 +17,7 @@ girt-add a b
 echo world >a
 rm d
 girt-rm e
-girt-add g
+girt-commit -a -m 'second commit'
 girt-status
 } > "$temp_output" 2>&1
 )
@@ -26,13 +26,12 @@ girt-status
 cat > "$correct_output" << EOM
 Initialized empty girt repository in .girt
 Committed as commit 0
-a - file changed, different changes staged for commit
-b - file changed, changes staged for commit
-c - file changed, changes not staged for commit
-d - file deleted
-e - deleted
+Committed as commit 1
+a - same as repo
+b - same as repo
+c - same as repo
 f - same as repo
-g - added to index
+g - untracked
 h - untracked
 EOM
 
@@ -42,5 +41,3 @@ else
     echo "FAIL" 1>&2
     exit 1
 fi
-
-# cat "$temp_output"

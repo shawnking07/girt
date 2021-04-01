@@ -19,6 +19,12 @@ rm d
 girt-rm e
 girt-add g
 girt-status
+girt-rm --force b
+girt-status
+girt-rm --cached c
+girt-status
+girt-rm --force --cached g
+girt-status
 } > "$temp_output" 2>&1
 )
 
@@ -33,6 +39,30 @@ d - file deleted
 e - deleted
 f - same as repo
 g - added to index
+h - untracked
+a - file changed, different changes staged for commit
+b - deleted
+c - file changed, changes not staged for commit
+d - file deleted
+e - deleted
+f - same as repo
+g - added to index
+h - untracked
+a - file changed, different changes staged for commit
+b - deleted
+c - untracked
+d - file deleted
+e - deleted
+f - same as repo
+g - added to index
+h - untracked
+a - file changed, different changes staged for commit
+b - deleted
+c - untracked
+d - file deleted
+e - deleted
+f - same as repo
+g - untracked
 h - untracked
 EOM
 

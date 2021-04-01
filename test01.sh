@@ -22,4 +22,9 @@ Committed as commit 0
 0 commit-0
 EOM
 
-diff "$temp_output" "$correct_output" && echo "PASS" || echo "FAIL" 1>&2; exit 1;
+if diff "$temp_output" "$correct_output" ; then
+    echo "PASS" 
+else
+    echo "FAIL" 1>&2
+    exit 1
+fi

@@ -36,6 +36,6 @@ g - added to index
 h - untracked
 EOM
 
-diff "$temp_output" "$correct_output" && echo "PASS" || echo "FAIL" 1>&2; exit 1;
+diff "$temp_output" "$correct_output" && echo "PASS" || { echo "FAIL" 1>&2; exit 1; }
 
 # cat "$temp_output"

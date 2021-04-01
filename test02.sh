@@ -34,6 +34,11 @@ $(which girt-show): error: 'c.txt' not found in commit 0
 $(which girt-show): error: unknown commit '1'
 EOM
 
-diff "$temp_output" "$correct_output" && echo "PASS" || echo "FAIL" 1>&2; exit 1;
+if diff "$temp_output" "$correct_output" ; then
+    echo "PASS" 
+else
+    echo "FAIL" 1>&2
+    exit 1
+fi
 
 # cat "$temp_output"

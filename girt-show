@@ -31,6 +31,10 @@ load_commit(){
     fi
 }
 
+[ -z "$commit" ] && [ -z "$filename" ] && {
+    usage
+}
+
 if ! test -z "$commit"; then
     load_commit "$commit" "$filename"
     exit 0

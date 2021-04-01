@@ -4,7 +4,7 @@ if ! test -e "$PWD/.girt"; then
     echo "$0: error: girt repository directory .girt not found" >&2
     exit 1
 fi
-usage() { echo "usage: $0 [commit]:filename" 1>&2; exit 1; }
+usage() { echo "usage: $0 <commit>:<filename>" 1>&2; exit 1; }
 
 commit=$(echo "$1"|cut -d':' -f1)
 filename=$(echo "$1"|cut -d':' -f2)
